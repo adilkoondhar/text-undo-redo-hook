@@ -6,9 +6,16 @@ const TextEditor: React.FC = () => {
     const [redoStack, setRedoStack] = useState<string[]>([]);
 
     const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setUndoStack([...undoStack, text]);
-        setText(event.target.value);
-        setRedoStack([]);
+        const newText = event.target.value;
+        const lastChar = newText[newText.length - 1];
+        const isWordBoundary = lastChar === ' ' || lastChar === '\n' || lastChar === undefined;
+
+        if (isWordBoundary) {
+            setUndoStack([...undoStack, text]);
+            setRedoStack([]);
+        }
+
+        setText(newText);
     };
 
     const undo = useCallback(() => {
