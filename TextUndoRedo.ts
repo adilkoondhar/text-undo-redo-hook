@@ -4,16 +4,29 @@ const TextEditor: React.FC = () => {
     const [text, setText] = useState<string>('');
     const [undoStack, setUndoStack] = useState<string[]>([]);
     const [redoStack, setRedoStack] = useState<string[]>([]);
+    const [typingTimeout, setTypingTimeout] = useState<number | null>(null);
+
+    const saveState = (newText: string) => {
+        setUndoStack([...undoStack, newText]);
+        setRedoStack([]);
+    };
 
     const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         const newText = event.target.value;
         const lastChar = newText[newText.length - 1];
-        const isWordBoundary = lastChar === ' ' || lastChar === '\n' || lastChar === undefined;
+        const isWordBoundary = /[\s\W]/.test(lastChar);
 
         if (isWordBoundary) {
-            setUndoStack([...undoStack, text]);
-            setRedoStack([]);
+            saveState(text);
         }
+
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
+
+        setTypingTimeout(window.setTimeout(() => {
+            saveState(newText);
+        }, 1000));
 
         setText(newText);
     };
