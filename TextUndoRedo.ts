@@ -13,26 +13,6 @@ const TextEditor: React.FC = () => {
         }
     };
 
-    const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const newText = event.target.value;
-        const lastChar = newText[newText.length - 1];
-        const isWordBoundary = /[\s\W]/.test(lastChar);
-
-        if (isWordBoundary) {
-            saveState(text);
-        }
-
-        if (typingTimeout) {
-            clearTimeout(typingTimeout);
-        }
-
-        setTypingTimeout(window.setTimeout(() => {
-            saveState(newText);
-        }, 1000));
-
-        setText(newText);
-    };
-
     const undo = useCallback(() => {
         if (undoStack.length <= 1) return;
 
@@ -58,8 +38,30 @@ const TextEditor: React.FC = () => {
         } else if (event.ctrlKey && event.key === 'y') {
             event.preventDefault();
             redo();
+        } else if (event.key === 'Backspace') {
+            saveState(text);
         }
-    }, [undo, redo]);
+    }, [text, undo, redo]);
+
+    const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newText = event.target.value;
+        const lastChar = newText[newText.length - 1];
+        const isWordBoundary = /[\s\W]/.test(lastChar);
+
+        if (isWordBoundary) {
+            saveState(text);
+        }
+
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
+
+        setTypingTimeout(window.setTimeout(() => {
+            saveState(newText);
+        }, 1000));
+
+        setText(newText);
+    };
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyDown);
