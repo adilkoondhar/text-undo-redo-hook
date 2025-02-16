@@ -2,13 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 const TextEditor: React.FC = () => {
     const [text, setText] = useState<string>('');
-    const [undoStack, setUndoStack] = useState<string[]>([]);
+    const [undoStack, setUndoStack] = useState<string[]>(['']);
     const [redoStack, setRedoStack] = useState<string[]>([]);
     const [typingTimeout, setTypingTimeout] = useState<number | null>(null);
 
     const saveState = (newText: string) => {
-        setUndoStack([...undoStack, newText]);
-        setRedoStack([]);
+        if (undoStack[undoStack.length - 1] !== newText) {
+            setUndoStack([...undoStack, newText]);
+            setRedoStack([]);
+        }
     };
 
     const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -32,10 +34,10 @@ const TextEditor: React.FC = () => {
     };
 
     const undo = useCallback(() => {
-        if (undoStack.length === 0) return;
+        if (undoStack.length <= 1) return;
 
-        const lastState = undoStack[undoStack.length - 1];
-        setRedoStack([...redoStack, text]);
+        const lastState = undoStack[undoStack.length - 2];
+        setRedoStack([text, ...redoStack]);
         setText(lastState);
         setUndoStack(undoStack.slice(0, -1));
     }, [text, undoStack, redoStack]);
@@ -43,10 +45,10 @@ const TextEditor: React.FC = () => {
     const redo = useCallback(() => {
         if (redoStack.length === 0) return;
 
-        const lastState = redoStack[redoStack.length - 1];
-        setUndoStack([...undoStack, text]);
+        const lastState = redoStack[0];
+        setUndoStack([...undoStack, lastState]);
         setText(lastState);
-        setRedoStack(redoStack.slice(0, -1));
+        setRedoStack(redoStack.slice(1));
     }, [text, undoStack, redoStack]);
 
     const handleKeyDown = useCallback((event: KeyboardEvent) => {
